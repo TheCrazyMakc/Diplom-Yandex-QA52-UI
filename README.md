@@ -37,11 +37,11 @@ pytest -q tests/test_order_feed.py
 pytest -q tests/test_order_feed.py::TestOrderFeed::test_total_orders_counter_increases
 ```
 
-- Запуск только в одном браузере (через отбор по id):
+- Запуск только в одном браузере
 
 ```bash
-pytest -q -k "[chrome]"
-pytest -q -k "[firefox]"
+pytest -q -k "chrome"
+pytest -q -k "firefox"
 ```
 
 ## Allure-отчёт
@@ -90,7 +90,7 @@ Diplom_3/
 │  ├─ login_page.py            # действия для авторизации
 │  └─ feed_page.py             # действия и проверки для ленты заказов
 ├─ api/
-│  └─ user_api.py              # 
+│  └─ user_api.py              # нормализация текста (номера заказов)
 └─ tests/
    ├─ test_main_page.py        # базовые UI-проверки главной
    └─ test_order_feed.py       # проверки счётчиков и «В работе»
