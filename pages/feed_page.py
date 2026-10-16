@@ -13,8 +13,10 @@ class FeedPage(BasePage):
                 FeedPageLocators.TOTAL_ORDERS_COUNTER,
                 FeedPageLocators.TODAY_ORDERS_COUNTER,
             ):
-                text = driver.find_element(*locator).text.strip()
-                if not text.isdigit():
+                elements = driver.find_elements(*locator)
+                if not elements:
+                    return False
+                if not elements[0].text.strip().isdigit():
                     return False
             return True
 
@@ -29,11 +31,18 @@ class FeedPage(BasePage):
         return self._get_counter_value(FeedPageLocators.TODAY_ORDERS_COUNTER, time)
 
     def _get_counter_value(self, locator, time=10):
+        """Возвращает числовое значение счётчика, дождавшись его загрузки."""
+        result = {}
+
         def condition(driver):
             text = driver.find_element(*locator).text.strip()
-            return int(text) if text.isdigit() else False
+            if text.isdigit():
+                result["value"] = int(text)
+                return True
+            return False
 
-        return self.wait_for_condition(condition, time=time)
+        self.wait_for_condition(condition, time=time)
+        return result["value"]
 
     @allure.step("Ожидание увеличения счетчика 'Выполнено за все время'")
     def wait_for_total_orders_to_increase(self, initial_count, time=10):

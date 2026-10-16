@@ -86,11 +86,12 @@ class MainPage(BasePage):
     @allure.step("Получение номера заказа")
     def get_order_number(self):
         """Получает номер заказа, дождавшись его появления."""
-        self.wait_for_condition(
-            lambda driver: self.find_element(MainPageLocators.ORDER_NUMBER).text != "9999",
-            time=20
-        )
-        return self.find_element(MainPageLocators.ORDER_NUMBER).text
+        def condition(driver):
+            text = self.find_element(MainPageLocators.ORDER_NUMBER).text.strip()
+            return text.isdigit() and text != "9999"
+
+        self.wait_for_condition(condition, time=20)
+        return self.find_element(MainPageLocators.ORDER_NUMBER).text.strip()
 
     def get_first_filling(self):
         """Возвращает веб-элемент первой начинки."""
