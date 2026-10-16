@@ -95,4 +95,3 @@ Diplom_3/
    ├─ test_main_page.py        # базовые UI-проверки главной
    └─ test_order_feed.py       # проверки счётчиков и «В работе»
 ```
-test
