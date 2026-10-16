@@ -1,6 +1,6 @@
 # UI-тесты для Stellar Burgers
 
-Набор UI-тестов (Selenium + Pytest) для https://stellarburgers.education-services.ru/ с паттерном Page Object и
+Набор UI-тестов (Selenium + Pytest) для https://qa-stellarburgers.education-services.ru/ с паттерном Page Object и
 аллюр-шагами.
 
 ## Требования
@@ -51,13 +51,11 @@ pytest -q --alluredir=allure-results
 allure serve allure-results
 ```
 
-## Пользователь для авторизации
-
-Создан заранее через API, хранится в data/user_data.py:
-
-- email: mroizo@mail.ru
-- password: password
-- name: Quentin Dupieux
+## Тестовые пользователи
+Пользователь создаётся автоматически через API (`/api/auth/register`)
+перед каждым тестом и удаляется после. Данные генерируются в
+`data/user_data.py` с использованием uuid — это обеспечивает изоляцию
+тестов и безопасность параллельных прогонов.
 
 ## Что проверяется
 
@@ -66,6 +64,7 @@ allure serve allure-results
     - Переход в «Ленту заказов»
     - Модалка ингредиента: открытие и закрытие
     - Счётчик ингредиента увеличивается после добавления
+    - Регистрация пользователя через API перед каждым тестом и удаление после.
 - Лента заказов:
     - «Выполнено за всё время» увеличивается после создания заказа
     - «Выполнено за сегодня» увеличивается после создания заказа
