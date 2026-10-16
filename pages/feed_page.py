@@ -1,6 +1,7 @@
 from pages.base_page import BasePage
 from locators.feed_page_locators import FeedPageLocators
 import allure
+from utils.text import normalize_order_number
 
 
 class FeedPage(BasePage):
@@ -40,26 +41,45 @@ class FeedPage(BasePage):
 
     @allure.step("Получение списка номеров заказов в разделе 'В работе'")
     def get_in_progress_orders(self):
-        """Получает список номеров заказов в разделе 'В работе'."""
         elements = self.driver.find_elements(*FeedPageLocators.IN_PROGRESS_ORDERS)
-        numbers = []
-        for e in elements:
-            merged = ''.join(ch for ch in e.text if ch.isdigit()).lstrip('0') or '0'
-            if merged:
-                numbers.append(merged)
-        return numbers
+        return [
+            normalize_order_number(e.text)
+            for e in elements
+            if e.text.strip()
+        ]
 
     @allure.step("Ожидание появления заказа '{order_number}' в разделе 'В работе'")
     def wait_for_order_in_progress(self, order_number, time=30):
-        """Ожидает появления указанного номера заказа в разделе 'В работе'."""
-        order_number = str(order_number).strip()
+        target = normalize_order_number(order_number)
 
         def condition(driver):
             elems = driver.find_elements(*FeedPageLocators.IN_PROGRESS_ORDERS)
-            for el in elems:
-                merged = ''.join(ch for ch in el.text if ch.isdigit()).lstrip('0') or '0'
-                if merged == order_number:
-                    return True
-            return False
+            return any(normalize_order_number(el.text) == target for el in elems)
 
         self.wait_for_condition(condition, time=time)
+
+    # @allure.step("Получение списка номеров заказов в разделе 'В работе'")
+    # def get_in_progress_orders(self):
+    #     """Получает список номеров заказов в разделе 'В работе'."""
+    #     elements = self.driver.find_elements(*FeedPageLocators.IN_PROGRESS_ORDERS)
+    #     numbers = []
+    #     for e in elements:
+    #         merged = ''.join(ch for ch in e.text if ch.isdigit()).lstrip('0') or '0'
+    #         if merged:
+    #             numbers.append(merged)
+    #     return numbers
+
+    # @allure.step("Ожидание появления заказа '{order_number}' в разделе 'В работе'")
+    # def wait_for_order_in_progress(self, order_number, time=30):
+    #     """Ожидает появления указанного номера заказа в разделе 'В работе'."""
+    #     order_number = str(order_number).strip()
+
+    #     def condition(driver):
+    #         elems = driver.find_elements(*FeedPageLocators.IN_PROGRESS_ORDERS)
+    #         for el in elems:
+    #             merged = ''.join(ch for ch in el.text if ch.isdigit()).lstrip('0') or '0'
+    #             if merged == order_number:
+    #                 return True
+    #         return False
+
+    #     self.wait_for_condition(condition, time=time)

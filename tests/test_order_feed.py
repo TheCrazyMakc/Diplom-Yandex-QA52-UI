@@ -2,6 +2,7 @@ from pages.main_page import MainPage
 from pages.feed_page import FeedPage
 from data.urls import Urls
 import allure
+from utils.text import normalize_order_number
 
 
 @allure.suite("Лента заказов")
@@ -82,4 +83,5 @@ class TestOrderFeed:
             main_page.click_order_feed_button()
             feed_page.wait_for_url_to_be(Urls.FEED_URL)
             feed_page.wait_for_order_in_progress(order_number)
-            assert order_number in feed_page.get_in_progress_orders(), "Номер заказа не найден в ленте 'В работе'"
+            assert normalize_order_number(order_number) in feed_page.get_in_progress_orders(), \
+                f"Номер заказа {order_number} не найден в ленте 'В работе'"
