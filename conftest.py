@@ -66,3 +66,19 @@ def logged_in_driver(driver, registered_user):
         )
         MainPage(driver).wait_for_assemble_burger_title()
     return driver
+
+@pytest.fixture
+def created_order(logged_in_driver):
+    """
+    Arrange: создаёт заказ для тестов ленты и возвращает (driver, order_number).
+    Номер заказа нужен тестам, проверяющим его появление в ленте.
+    """
+    main_page = MainPage(logged_in_driver)
+
+    with allure.step("Подготовка: создание заказа"):
+        main_page.click_constructor_button()
+        main_page.wait_for_assemble_burger_title()
+        order_number = main_page.create_order_and_get_number()
+
+    assert order_number, "Подготовка не удалась: номер заказа не получен"
+    return logged_in_driver, order_number

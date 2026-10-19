@@ -8,19 +8,17 @@ class FeedPage(BasePage):
 
     @allure.step("Ожидание загрузки счётчиков на странице")
     def wait_for_counters_to_load(self, time_to_wait=10):
-        def condition(driver):
+        def condition():
             for locator in (
                 FeedPageLocators.TOTAL_ORDERS_COUNTER,
                 FeedPageLocators.TODAY_ORDERS_COUNTER,
             ):
-                elements = driver.find_elements(*locator)
-                if not elements:
-                    return False
-                if not elements[0].text.strip().isdigit():
+                text = self.get_element_text_safe(locator)
+                if not text or not text.isdigit():
                     return False
             return True
 
-        self.wait_for_condition(condition, time=time_to_wait)
+        self.wait_for_condition_no_driver(condition, time=time_to_wait)
 
     @allure.step("Получение значения счётчика 'Выполнено за все время'")
     def get_total_orders_count(self, time=10):
@@ -31,38 +29,33 @@ class FeedPage(BasePage):
         return self._get_counter_value(FeedPageLocators.TODAY_ORDERS_COUNTER, time)
 
     def _get_counter_value(self, locator, time=10):
-        """Возвращает числовое значение счётчика, дождавшись его загрузки."""
         result = {}
 
-        def condition(driver):
-            text = driver.find_element(*locator).text.strip()
-            if text.isdigit():
+        def condition():
+            text = self.get_element_text_safe(locator)
+            if text and text.isdigit():
                 result["value"] = int(text)
                 return True
             return False
 
-        self.wait_for_condition(condition, time=time)
+        self.wait_for_condition_no_driver(condition, time=time)
         return result["value"]
 
     @allure.step("Ожидание увеличения счетчика 'Выполнено за все время'")
     def wait_for_total_orders_to_increase(self, initial_count, time=10):
-        """Ожидает, пока счетчик 'Выполнено за все время' не увеличится."""
-        def condition(driver):
-            return self.get_total_orders_count() > initial_count
-
-        self.wait_for_condition(condition, time=time)
+        self.wait_for_condition_no_driver(
+            lambda: self.get_total_orders_count() > initial_count, time=time
+        )
 
     @allure.step("Ожидание увеличения счетчика 'Выполнено за сегодня'")
     def wait_for_today_orders_to_increase(self, initial_count, time=10):
-        """Ожидает, пока счетчик 'Выполнено за сегодня' не увеличится."""
-        def condition(driver):
-            return self.get_today_orders_count() > initial_count
-
-        self.wait_for_condition(condition, time=time)
+        self.wait_for_condition_no_driver(
+            lambda: self.get_today_orders_count() > initial_count, time=time
+        )
 
     @allure.step("Получение списка номеров заказов в разделе 'В работе'")
     def get_in_progress_orders(self):
-        elements = self.driver.find_elements(*FeedPageLocators.IN_PROGRESS_ORDERS)
+        elements = self.find_elements_safe(FeedPageLocators.IN_PROGRESS_ORDERS)
         return [
             normalize_order_number(e.text)
             for e in elements
@@ -73,8 +66,8 @@ class FeedPage(BasePage):
     def wait_for_order_in_progress(self, order_number, time=30):
         target = normalize_order_number(order_number)
 
-        def condition(driver):
-            elems = driver.find_elements(*FeedPageLocators.IN_PROGRESS_ORDERS)
+        def condition():
+            elems = self.find_elements_safe(FeedPageLocators.IN_PROGRESS_ORDERS)
             return any(normalize_order_number(el.text) == target for el in elems)
 
-        self.wait_for_condition(condition, time=time)
+        self.wait_for_condition_no_driver(condition, time=time)

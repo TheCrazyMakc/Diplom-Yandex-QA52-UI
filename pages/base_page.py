@@ -18,6 +18,25 @@ class BasePage:
         """
         self.driver = driver
 
+    @allure.step("Найти элементы без ожидания (пустой список, если не найдено)")
+    def find_elements_safe(self, locator):
+        return self.driver.find_elements(*locator)
+
+    @allure.step("Найти элемент без ожидания (None, если не найдено)")
+    def find_element_safe(self, locator):
+        elements = self.driver.find_elements(*locator)
+        return elements[0] if elements else None
+
+    @allure.step("Получить текст элемента без ожидания")
+    def get_element_text_safe(self, locator):
+        element = self.find_element_safe(locator)
+        return element.text.strip() if element else None
+
+    @allure.step("Ожидать выполнения условия")
+    def wait_for_condition_no_driver(self, condition, time=5):
+        """condition — callable без аргументов, возвращающий truthy."""
+        return WebDriverWait(self.driver, time).until(lambda _: condition())
+
     @allure.step("Найти элемент по локатору {locator}")
     def find_element(self, locator, time=10):
         """
