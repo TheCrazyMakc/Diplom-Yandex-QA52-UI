@@ -100,9 +100,8 @@ class MainPage(BasePage):
         return self.find_element(MainPageLocators.FIRST_FILLING)
 
     def get_ingredient_counter(self, ingredient_element):
-        """Получает значение счетчика для указанного ингредиента."""
-        counters = ingredient_element.find_elements(*MainPageLocators.INGREDIENT_COUNTER)
-        return counters[0].text if counters else None
+        counters = self.find_child_elements(ingredient_element, MainPageLocators.INGREDIENT_COUNTER)
+        return counters[0].text.strip() if counters else None
 
     @allure.step("Перетаскивание первой начинки в конструктор")
     def drag_first_filling_to_constructor(self):

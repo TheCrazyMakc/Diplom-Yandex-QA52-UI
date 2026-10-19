@@ -32,6 +32,10 @@ class BasePage:
         element = self.find_element_safe(locator)
         return element.text.strip() if element else None
 
+    @allure.step("Найти дочерние элементы внутри элемента")
+    def find_child_elements(self, parent_element, locator):
+        return parent_element.find_elements(*locator)
+
     @allure.step("Ожидать выполнения условия")
     def wait_for_condition_no_driver(self, condition, time=5):
         """condition — callable без аргументов, возвращающий truthy."""
