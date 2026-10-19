@@ -38,16 +38,34 @@ def registered_user(user_api):
     """
     Создаёт уникального пользователя через API перед тестом
     и удаляет его после.
+
+    Это подготовка, а не проверка: при неудаче регистрации/логина
+    фикстура падает с pytest.fail (Error, а не Failure),
+    чтобы не маскировать результаты теста и не делать его неатомарным.
     """
     data = generate_user_data()
 
     with allure.step(f"API: регистрация пользователя {data['email']}"):
         resp = user_api.register(**data)
-        assert resp.status_code == 200, f"Не удалось зарегистрировать: {resp.text}"
+        if resp.status_code != 200:
+            pytest.fail(
+                f"Не удалось зарегистрировать пользователя {data['email']}: "
+                f"status={resp.status_code}, body={resp.text}"
+            )
 
-    login_resp = user_api.login(data["email"], data["password"])
-    token = login_resp.json().get("accessToken")
-    data["access_token"] = token
+    with allure.step(f"API: логин пользователя {data['email']}"):
+        login_resp = user_api.login(data["email"], data["password"])
+        if login_resp.status_code != 200:
+            pytest.fail(
+                f"Не удалось залогинить пользователя {data['email']}: "
+                f"status={login_resp.status_code}, body={login_resp.text}"
+            )
+        token = login_resp.json().get("accessToken")
+        if not token:
+            pytest.fail(
+                f"Логин {data['email']} вернул пустой accessToken: {login_resp.text}"
+            )
+        data["access_token"] = token
 
     yield data
 
@@ -67,11 +85,15 @@ def logged_in_driver(driver, registered_user):
         MainPage(driver).wait_for_assemble_burger_title()
     return driver
 
+
 @pytest.fixture
 def created_order(logged_in_driver):
     """
-    Arrange: создаёт заказ для тестов ленты и возвращает (driver, order_number).
-    Номер заказа нужен тестам, проверяющим его появление в ленте.
+    Arrange для тестов ленты заказов: создаёт заказ от имени
+    авторизованного пользователя и возвращает (driver, order_number).
+
+    Это подготовка, а не проверка: при неудаче создания заказа
+    фикстура падает с pytest.fail (Error, а не Failure).
     """
     main_page = MainPage(logged_in_driver)
 
@@ -80,5 +102,7 @@ def created_order(logged_in_driver):
         main_page.wait_for_assemble_burger_title()
         order_number = main_page.create_order_and_get_number()
 
-    assert order_number, "Подготовка не удалась: номер заказа не получен"
+    if not order_number:
+        pytest.fail("Подготовка не удалась: номер заказа не получен")
+
     return logged_in_driver, order_number
