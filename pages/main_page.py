@@ -85,12 +85,14 @@ class MainPage(BasePage):
 
     @allure.step("Получение номера заказа")
     def get_order_number(self):
-        """Получает номер заказа, дождавшись его появления."""
-        def condition(driver):
-            text = self.find_element(MainPageLocators.ORDER_NUMBER).text.strip()
+        def condition():
+            element = self.find_element_safe(MainPageLocators.ORDER_NUMBER)
+            if element is None:
+                return False
+            text = element.text.strip()
             return text.isdigit() and text != "9999"
 
-        self.wait_for_condition(condition, time=20)
+        self.wait_for_condition_no_driver(condition, time=20)
         return self.find_element(MainPageLocators.ORDER_NUMBER).text.strip()
 
     def get_first_filling(self):
@@ -127,6 +129,8 @@ class MainPage(BasePage):
         return order_number
 
     @allure.step("Ожидание, пока счетчик ингредиента не примет значение '{value}'")
-    def wait_for_ingredient_counter_value(self, ingredient_element, value):
-        """Ожидает, пока счетчик ингредиента не примет указанное значение."""
-        self.wait_for_condition(lambda d: self.get_ingredient_counter(ingredient_element) == value)
+    def wait_for_ingredient_counter_value(self, ingredient_element, value, time=10):
+        self.wait_for_condition_no_driver(
+            lambda: self.get_ingredient_counter(ingredient_element) == value,
+            time=time,
+        )
