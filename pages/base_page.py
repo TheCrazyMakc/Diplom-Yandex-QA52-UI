@@ -1,6 +1,8 @@
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import allure
+from locators.base_locators import BaseLocators
+from selenium.common.exceptions import TimeoutException
 
 
 class BasePage:
@@ -42,12 +44,20 @@ class BasePage:
             message=f"Can't find elements by locator {locator}"
         )
 
+    @allure.step("Ожидать отсутствия оверлея модального окна")
+    def wait_for_overlay_to_disappear(self, time=5):
+        try:
+            self.wait_for_element_invisibility(BaseLocators.MODAL_OVERLAY, time=time)
+        except TimeoutException:
+            pass
+
     @allure.step("Кликнуть на элемент по локатору {locator}")
     def click_on_element(self, locator):
         """
         Кликает на веб-элемент.
         :param locator: Кортеж (By, 'selector').
         """
+        self.wait_for_overlay_to_disappear()
         self.find_element(locator).click()
 
     @allure.step("Ожидать кликабельности элемента по локатору {locator}")
